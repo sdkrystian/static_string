@@ -35,16 +35,36 @@ local sources = [ path.glob-tree ../include/boost/static_string : *.hpp *.ipp : 
 
 #-------------------------------------------------------------------------------
 #
+# Copy all the XSLT modules to the target directory.
+#
+
+path-constant docca : ../../../tools/docca ;
+make extract-xml-pages.xsl      : $(docca)/include/docca/extract-xml-pages.xsl      : @copy_script ;
+make base-extract-xml-pages.xsl : $(docca)/include/docca/base-extract-xml-pages.xsl : @copy_script ;
+make common.xsl                 : $(docca)/include/docca/common.xsl                 : @copy_script ;
+make stage1.xsl                 : $(docca)/include/docca/stage1.xsl                 : @copy_script ;
+make base-stage1.xsl            : $(docca)/include/docca/base-stage1.xsl            : @copy_script ;
+make stage2.xsl                 : $(docca)/include/docca/stage2.xsl                 : @copy_script ;
+make assemble-quickbook.xsl     : $(docca)/include/docca/assemble-quickbook.xsl     : @copy_script ;
+make emphasized-types.xsl       : $(docca)/include/docca/emphasized-types.xsl       : @copy_script ;
+
+actions copy_script
+{
+    cp $(2[1]) $(1)
+}
+
+#-------------------------------------------------------------------------------
+#
 # Generate transform.xsl. This xsl transfomration takes as input
 # the Doxygen-generated XML and produces QuickBook output.
 #
+
 make transform.xsl
     :
-        docca/include/docca/doxygen.xsl
+        $(docca)/include/docca/config.xsl
         xsl/config.xsl
         xsl/class_detail.xsl
         xsl/includes.xsl
-        xsl/includes_foot.xsl
     :
         @make_transform
     ;
@@ -58,7 +78,6 @@ actions make_transform
     sed -i -e "/<!-- CONFIG_TEMPLATE -->/{r $(2[2])" -e "d}" $(1)
     sed -i -e "/<!-- CLASS_DETAIL_TEMPLATE -->/{r $(2[3])" -e "d}" $(1)
     sed -i -e "/<!-- INCLUDES_TEMPLATE -->/{r $(2[4])" -e "d}" $(1)
-    sed -i -e "/<!-- INCLUDES_FOOT_TEMPLATE -->/{r $(2[5])" -e "d}" $(1)
 }
 
 #-------------------------------------------------------------------------------
@@ -174,12 +193,9 @@ boostbook static_string
         static_string_doc
     :
         <xsl:param>boost.root=../../../..
-        <xsl:param>chapter.autolabel=1
-        <xsl:param>chunk.section.depth=0                # Depth to which sections should be chunked
-        <xsl:param>chunk.first.sections=1               # Chunk the first top-level section?
-        <xsl:param>toc.section.depth=8                  # How deep should recursive sections appear in the TOC?
-        <xsl:param>toc.max.depth=8                      # How many levels should be created for each TOC?
-        <xsl:param>generate.section.toc.level=8         # Control depth of TOC generation in sections
+        <xsl:param>chapter.autolabel=0
+        <xsl:param>chunk.section.depth=8               # Depth to which sections should be chunked
+        <xsl:param>chunk.first.sections=1              # Chunk the first top-level section?
         <xsl:param>generate.toc=""
         <include>../../../tools/boostbook/dtd
     :
